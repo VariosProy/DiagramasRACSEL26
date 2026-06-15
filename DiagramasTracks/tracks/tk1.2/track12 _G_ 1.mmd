@@ -1,0 +1,82 @@
+  sequenceDiagram
+    participant HA as HIS_Country_A
+    participant Proxy_Gazzele as Proxy_Gazzele
+    participant NA as Node_Country_A
+    participant TermA as Terminológico A
+    participant MPI as MPI
+    autonumber
+  %%  participant NB as Node_Country_B
+   %% participant TermB as Terminológico B
+   %% participant HB as HIS_Country_B
+    %% participant HA as HIS_País_A
+    %% Note over NA, NB: Paso 0: Suscripción
+
+    %%Note over HA, HB: Teleinterconsulta (Médico a Médico)
+    Note over HA, MPI: Teleinterconsulta (Médico a Médico)
+    Note over HA, NA: Paso 1: Genera Orden
+
+    rect rgba(200, 220, 255, .3)
+        HA ->>Proxy_Gazzele: ITI-78
+        Proxy_Gazzele ->>MPI: ITI-78
+        
+        MPI-->>Proxy_Gazzele: Retorna paciente
+        Proxy_Gazzele-->>HA: Retorna paciente
+    end
+
+    rect rgba(200, 220, 255, .3)
+        HA->>Proxy_Gazzele: ITI-98 / ITI-101 <G>
+        Proxy_Gazzele->>TermA: ITI-98 / ITI-101
+    
+        TermA-->>Proxy_Gazzele: Retorna terminologia
+        Proxy_Gazzele-->>HA: Retorna terminologia
+    end
+
+    HA->>HA: Crea IPS_A
+        rect rgba(200, 220, 255, .3)
+        HA->>Proxy_Gazzele : ITI-65: Guarda IPS_A
+        Proxy_Gazzele ->> NA: ITI-65: Guarda IPS_A
+        NA-->>Proxy_Gazzele: ACK
+        Proxy_Gazzele -->> HA : ACK        
+     end
+
+    Note over HA: Con la información del paciente, <br/> el IPS de referencia anterior  <br/>  se crea la orden.
+    
+       
+    HA->>HA: Crea Orden
+    rect rgba(200, 220, 255, .3)
+        HA->> Proxy_Gazzele: POST <Nodo_A>/ServiceRequest (active) 
+        Proxy_Gazzele  ->>  NA: POST <Nodo_A>/ServiceRequest (active)
+         NA --> Proxy_Gazzele: ACK
+        Proxy_Gazzele -->>HA: ACK
+    end 
+    %% Note over NA, HB: Paso 2: Respuesta de teleconsulta país B (inicia y termina con comunicación asincrona)
+
+    %% break Inicia con notificación asincrona
+    %%     HB->>NA: GET <Nodo_A>/ServiceRequest (identificador de orden,  active, ...)
+    %% end
+    %% NA-->>HB: Retorna ServiceRequest
+    %% HB->>NA: ITI-68: Retrieve IPS_A
+    %% NA-->>HB: Retorna IPS_A
+    %% Note right of HB: Evaluaciónmmsdnoteleft del Especialista
+    %% HB->>HB: Genera Reporte Clínico
+
+    %% HB ->>Proxy_Gazzele: ITI-78 <G>
+    %% Proxy_Gazzele ->>MPI: ITI-78
+    %% MPI-->>Proxy_Gazzele: Retorna paciente
+    %% Proxy_Gazzele-->>HB: Retorna paciente
+
+    %% HB->>NB: ITI-65: Guarda Reporte (Consultation Note)
+    %% NB-->>HB: ACK
+
+    %% break Inicia con notificación asincrona
+    %%   HA->>NA:  PUT <Nodo_A>/ServiceRequest/IDOrden (completed)
+    %% end
+    %% Note over HA, NB: Paso 3: Visualiza respuesta de teleconsulta país A
+
+    %% HA->>NB:  GET ITI 67 - <Nodo_B>/DocumentReference (param:Consultation Note, IDOrden)
+    %% NB-->>HA: Retorna Document Reference de Reporte (Consultation Note)
+    %% HA->>NB: GET ITI 68 - <Nodo_B>/Bundle-Document/ID 
+    %% NB-->>HA: Retorna Reporte (Consultation Note)
+
+    %% HA->>HA: Visualiza Report (Consultation Note)
+    %% Note over HA: Actualización de Historia Clínica
