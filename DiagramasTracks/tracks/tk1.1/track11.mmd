@@ -11,26 +11,26 @@ sequenceDiagram
     participant HB as HIS_País_B
     participant TSB as Terminológico B
     participant VHLB as Servicio VHL B
-    participant ITB as ITB
+    %% participant ITB as ITB
     participant TN as GDHCN
 
     Note over HA, MPI: Paso 0: Generar IPS
-    HA->>MPI: ITI-78 <G>
+    HA->>MPI: ITI-78 [via Proxy_Gazzele] 
     MPI-->>HA: Retorna paciente
 
-    HA->>TS: ITI-98 / ITI-101 <G>
+    HA->>TS: ITI-98 / ITI-101 [via Proxy_Gazzele] 
     TS-->>HA: Retorna terminologia
 
     HA->>HA: Crea IPS_A
-    HA->>NA: ITI-65: Guarda IPS_A <G>
+    HA->>NA: ITI-65: Guarda IPS_A [via Proxy_Gazzele] 
     NA-->>HA: ACK
     
     Note over NA, W: Paso 1: Origen (País A)
     activate AP
-    AP->>NA: ITI-67: Solicita IPS_A <G>
+    AP->>NA: ITI-67: Solicita IPS_A [via Proxy_Gazzele] 
     NA-->>AP: Devuelve referencia de documento
 
-    AP->>NA: ITI-68: Obtener IPS_A <G>
+    AP->>NA: ITI-68: Obtener IPS_A [via Proxy_Gazzele] 
     NA-->>AP: Retorna IPS_A
 
     AP->>AP: Seleccionar recursos
@@ -54,8 +54,8 @@ sequenceDiagram
     HB->>VHLA: Obtener IPS_A desde VHL
     VHLA-->>HB: Retorna IPS_A con recursos seleccionados
 
-    HB->>ITB: Valida IPS_A
-    ITB-->>HB: Validación OK
+    %% HB->>ITB: Valida IPS_A
+    %% ITB-->>HB: Validación OK
 
     Note over NB, VHLB: Nueva atención (País B)
     HB->>MPI: ITI-78 <G>
@@ -70,7 +70,11 @@ sequenceDiagram
     AP->>HB: Escanear y Leer VHL
     HB-->>AP: Retorna IPS_B
     AP->>AP: Merge de IPS_A y IPS_B
-    
+
+    opt Opcional
+        AP-->>W: Enviar VHL (Deeplink)
+    end
+
     Note over AP, HA: Paso 3: Retorno (País A)
     AP->>AP: Genera VHL IPS_A+B
     HA->>AP: Obtiene IPS_A+B desde VHL
