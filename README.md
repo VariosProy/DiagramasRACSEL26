@@ -45,6 +45,6 @@ DiagramasRACSEL26/
 2. **VS Code**: Instalar la extensión *Mermaid Markdown Syntax Highlighting* o *Mermaid Preview*.
 3. **Online**: Copiar el contenido del archivo `.mmd` en [Mermaid Live Editor](https://mermaid.live/).
 
----
+-----
 
 > Proyecto BID — RACSEL 26
