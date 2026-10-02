@@ -1,0 +1,226 @@
+{
+  "resourceType" : "Bundle",
+  "id" : "BundleTransMHDITExample",
+  "meta" : {
+    "profile" : [
+       "http://racsel.org/StructureDefinition/LACBundleTransactionMHDIT"
+    ]
+  },
+  "type" : "transaction",
+  "timestamp" : "2026-05-18T09:00:00-05:00",
+  "entry" : [
+    {
+      "fullUrl" : "urn:uuid:a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "resource" : {
+        "resourceType" : "List",
+        "id" : "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "meta" : {
+          "profile" : [
+             "http://racsel.org/StructureDefinition/LACList"
+          ]
+        },
+        "text" : {
+          "status" : "extensions",
+          "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"List_a1b2c3d4-e5f6-7890-abcd-ef1234567890\"> </a>SubmissionSet - Respuesta de Interconsulta Transfronteriza</div>"
+        },
+        "extension" : [
+          {
+            "url" : "https://profiles.ihe.net/ITI/MHD/StructureDefinition/ihe-sourceId",
+            "valueIdentifier" : {
+              "value" : "urn:oid:2.16.591.1.1.1"
+            }
+          }
+        ],
+        "identifier" : [
+          {
+            "use" : "usual",
+            "system" : "urn:ietf:rfc:3986",
+            "value" : "urn:oid:1.2.840.113556.1.8000.2554.11111.22222.33333.44444.55555.66666.77777.88888"
+          }
+        ],
+        "status" : "current",
+        "mode" : "working",
+        "title" : "SubmissionSet - Carlos Eduardo Sánchez López",
+        "code" : {
+          "coding" : [
+            {
+              "system" : "https://profiles.ihe.net/ITI/MHD/CodeSystem/MHDlistTypes",
+              "code" : "submissionset"
+            }
+          ]
+        },
+        "subject" : {
+          "reference" : "urn:uuid:d5e6f7a8-b9c0-1234-efab-567890123456"
+        },
+        "date" : "2026-05-18T09:00:00-05:00",
+        "entry" : [
+          {
+            "item" : {
+              "reference" : "urn:uuid:b2c3d4e5-f6a7-8901-bcde-f12345678901"
+            }
+          }
+        ]
+      },
+      "request" : {
+        "method" : "POST",
+        "url" : "List"
+      }
+    },
+    {
+      "fullUrl" : "urn:uuid:b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "resource" : {
+        "resourceType" : "DocumentReference",
+        "id" : "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+        "meta" : {
+          "profile" : [
+             "http://racsel.org/StructureDefinition/LACDocReferenceIT"
+          ]
+        },
+        "text" : {
+          "status" : "generated",
+          "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><a name=\"DocumentReference_b2c3d4e5-f6a7-8901-bcde-f12345678901\"> </a><p>DocumentReference para la respuesta de interconsulta de Carlos Eduardo Sánchez López atendido por Dra. María García (Panamá).</p></div>"
+        },
+        "masterIdentifier" : {
+          "system" : "urn:ietf:rfc:3986",
+          "value" : "urn:oid:1.2.840.113556.1.8000.2554.99999.88888.77777.66666.55555.44444.33333.22222"
+        },
+        "identifier" : [
+          {
+            "use" : "usual",
+            "system" : "http://interconsultas_racsel.org",
+            "value" : "AR-1"
+          }
+        ],
+        "status" : "current",
+        "type" : {
+          "coding" : [
+            {
+              "system" : "http://loinc.org",
+              "code" : "57133-1",
+              "display" : "Referral note"
+            }
+          ],
+          "text" : "Nota de Contra-referencia / Respuesta de Interconsulta"
+        },
+        "subject" : {
+          "reference" : "urn:uuid:d5e6f7a8-b9c0-1234-efab-567890123456"
+        },
+        "date" : "2026-05-18T09:00:00-05:00",
+        "author" : [
+          {
+            "display" : "Dra. María García - Especialista en Dermatología - Panamá"
+          }
+        ],
+        "content" : [
+          {
+            "attachment" : {
+              "contentType" : "application/fhir+json",
+              "url" : "urn:uuid:c3d4e5f6-a7b8-9012-cdef-123456789012",
+              "title" : "Respuesta de Interconsulta - Carlos Eduardo Sánchez López"
+            },
+            "format" : {
+              "system" : "http://ihe.net/fhir/ihe.formatcode.fhir/CodeSystem/formatcode",
+              "code" : "urn:ihe:iti:xds-sd:text:2008"
+            }
+          }
+        ]
+      },
+      "request" : {
+        "method" : "POST",
+        "url" : "DocumentReference"
+      }
+    },
+    {
+      "fullUrl" : "urn:uuid:c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "resource" : {
+        "resourceType" : "Bundle",
+        "id" : "c3d4e5f6-a7b8-9012-cdef-123456789012",
+        "meta" : {
+          "profile" : [
+             "http://racsel.org/StructureDefinition/LACBundleDocIT"
+          ]
+        },
+        "identifier" : {
+          "system" : "urn:ietf:rfc:4122",
+          "value" : "f1a2b3c4-d5e6-7890-abcd-ef1234567890"
+        },
+        "type" : "document",
+        "timestamp" : "2026-05-18T09:00:00-05:00",
+        "entry" : [
+          {
+            "fullUrl" : "urn:uuid:e6f7a8b9-c0d1-2345-fabc-678901234567",
+            "resource" : {
+              "resourceType" : "Composition",
+              "id" : "e6f7a8b9-c0d1-2345-fabc-678901234567",
+              "meta" : {
+                "profile" : [
+                   "http://racsel.org/StructureDefinition/LACCompositionIT"
+                ]
+              },
+              "text" : {
+                "status" : "generated",
+                "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p>Respuesta de interconsulta transfronteriza emitida por la Dra. María García, especialista en Dermatología, Panamá.</p></div>"
+              },
+              "status" : "final",
+              "type" : {
+                "coding" : [
+                  {
+                    "system" : "http://loinc.org",
+                    "code" : "11488-4",
+                    "display" : "Consultation note"
+                  }
+                ]
+              },
+              "subject" : {
+                "reference" : "urn:uuid:d5e6f7a8-b9c0-1234-efab-567890123456"
+              },
+              "date" : "2026-05-18T09:00:00-05:00",
+              "author" : [
+                {
+                  "display" : "Dra. María García - Especialista en Dermatología - Hospital Santo Tomás, Panamá"
+                }
+              ],
+              "title" : "Respuesta de Interconsulta Transfronteriza - Dermatología",
+              "section" : [
+                {
+                  "title" : "Resultado de la Evaluación",
+                  "code" : {
+                    "coding" : [
+                      {
+                        "system" : "http://loinc.org",
+                        "code" : "55112-7",
+                        "display" : "Document summary"
+                      }
+                    ]
+                  },
+                  "text" : {
+                    "status" : "generated",
+                    "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><h3>Respuesta Clínica</h3><p>Tras revisar los antecedentes del paciente Carlos Eduardo Sánchez López (Perú) enviados en el IPS adjunto, se concluye que el paciente presenta una dermatitis por contacto de tipo alérgica. No se observan signos de malignidad cutánea. Se recomienda tratamiento tópico con corticosteroides de baja potencia durante 2 semanas y evitar el agente desencadenante identificado (níquel). Si los síntomas persisten, se sugiere patch test de confirmación.</p></div>"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "fullUrl" : "urn:uuid:d5e6f7a8-b9c0-1234-efab-567890123456",
+            "resource" : {
+            
+      },
+      "request" : {
+        "method" : "POST",
+        "url" : "Bundle"
+      }
+    },
+    {
+      "fullUrl" : "urn:uuid:d5e6f7a8-b9c0-1234-efab-567890123456",
+      "resource" : {
+       
+       
+       },
+      "request" : {
+        "method" : "POST",
+        "url" : "Patient"
+      }
+    }
+  ]
+}
