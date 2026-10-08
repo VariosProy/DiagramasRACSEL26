@@ -1,0 +1,90 @@
+sequenceDiagram
+    autonumber
+    participant IR as HIS_Country_A / Medication Order Placer
+    participant MPI as MPI federado
+    participant TS as Servicio de terminología
+    participant CDSS as CDSS
+    participant P as Servicio Prescription / Medication Order Receiver
+    participant NA as Repositorio clínico / Node_Country_A
+    participant NLP as Servicio de codificación automática
+
+    %% Referencia de estilo: track3.mmd
+    %% PHARM-5: https://profiles.ihe.net/PHARM/MPD/pharm-5.html
+    %% Los pasos complementarios representan el escenario solicitado, no requisitos de PHARM-5.
+
+    Note over IR, NLP: Paso 0: Identificación federada e inicio de la atención ambulatoria
+    IR->>IR: Iniciar atención con identificador del paciente y dominio de origen
+    IR->>MPI: Resolver identidad y correlacionar identificadores entre dominios
+    MPI-->>IR: Identidad federada e identificador del paciente en el dominio destino
+    Note over IR, MPI: Continuar tras confirmar una identidad inequívoca<br/>Resolver coincidencias ambiguas o ausentes antes del registro
+    IR->>NA: Consultar antecedentes, alergias y medicación del paciente identificado
+    NA-->>IR: Contexto clínico disponible
+    IR->>IR: Abrir encuentro ambulatorio asociado al paciente
+
+    Note over IR, TS: Paso 1: Atención y registro clínico codificado
+    IR->>IR: Registrar anamnesis, hallazgos, diagnósticos y plan
+    IR->>TS: Buscar conceptos y validar códigos en conjuntos de valores
+    TS-->>IR: Código, sistema, versión y descripción de los conceptos
+    IR->>IR: Confirmar conceptos que representan los hallazgos
+    IR->>NA: Guardar encuentro y registro clínico codificado
+    NA-->>IR: Confirmación e identificadores de los registros
+
+    Note over IR, P: Paso 2: Órdenes y prescripciones estructuradas con apoyo del CDSS
+    IR->>IR: Preparar órdenes de estudios y prescripciones
+    IR->>TS: Validar códigos de procedimientos y medicamentos
+    TS-->>IR: Conceptos válidos y descripciones
+    IR->>IR: Preparar ServiceRequest y MedicationRequest<br/>Paciente, indicación y datos de la orden<br/>Dosis, vía, frecuencia y duración cuando corresponda
+    IR->>CDSS: Evaluar prescripción propuesta con medicación activa,<br/>alergias y contexto clínico
+    CDSS-->>IR: Resultado de evaluación y alertas de interacción, si existen
+    opt Existen alertas de interacción
+        IR->>IR: Mostrar alertas, severidad, evidencia y recomendaciones
+        IR->>IR: Modificar o cancelar la prescripción,<br/>o justificar su continuidad cuando esté permitido
+        IR->>NA: Registrar alerta y decisión clínica con autor y fecha
+        NA-->>IR: Decisión registrada
+        opt Se modifica la prescripción
+            IR->>CDSS: Reevaluar la prescripción modificada
+            CDSS-->>IR: Evaluación actualizada
+        end
+    end
+
+    rect rgb(230, 242, 255)
+        Note over IR, P: Paso 3: PHARM-5 — Submit Medication Order (FHIR R5)<br/>Escenario de creación de una prescripción
+        opt Hay una prescripción autorizada para emitir
+            IR->>IR: Verificar que MedicationRequest sea consistente y ejecutable
+            IR->>P: POST /MedicationRequest<br/>Content-Type: application/fhir+json<br/>Cuerpo: recurso MedicationRequest
+            P->>P: Procesar y almacenar o reenviar la orden
+            alt Creación exitosa
+                P-->>IR: HTTP 201 Created<br/>MedicationRequest creado con id y versión asignados
+                IR->>NA: Registrar identificador, versión y estado de la prescripción
+                NA-->>IR: Prescripción vinculada al paciente y al encuentro
+                IR->>IR: Confirmar emisión de la prescripción
+            else Error de procesamiento
+                P-->>IR: Código HTTP de error + OperationOutcome
+                IR->>IR: Mostrar problema y gestionar su resolución
+                Note over IR, P: Corregir y reenviar cuando corresponda<br/>No marcar la emisión como exitosa hasta recibir confirmación
+            end
+        end
+    end
+
+    Note over IR, NLP: Paso 4: Codificación automática verificable de un documento en texto libre
+    IR->>IR: Incorporar documento clínico original en texto libre
+    IR->>NA: Conservar documento original con identificador y versión
+    NA-->>IR: Referencia a la versión original
+    IR->>NLP: Solicitar codificación del texto con referencia a su versión original
+    NLP->>TS: Buscar y validar conceptos extraídos del documento
+    TS-->>NLP: Códigos, sistemas, versiones y descripciones
+    NLP-->>IR: Propuestas de códigos con fragmento textual de evidencia,<br/>ubicación en el original y referencia a la versión procesada
+    IR->>IR: Presentar cada código junto a su evidencia en el documento original
+    IR->>IR: Verificar correspondencia y aceptar, corregir o rechazar propuestas
+    opt Se corrigen códigos propuestos
+        IR->>TS: Validar los códigos corregidos
+        TS-->>IR: Resultado de validación
+    end
+    IR->>NA: Guardar codificación validada y trazabilidad al original,<br/>autor de revisión, fecha y versión del servicio utilizado
+    NA-->>IR: Codificación y evidencia disponibles para verificación
+
+    Note over IR, NA: Paso 5: Cierre de la atención ambulatoria
+    IR->>NA: Guardar cierre del encuentro y plan de seguimiento
+    NA-->>IR: Atención registrada
+    IR->>IR: Resumen de atención, órdenes, prescripciones y decisiones sobre alertas
+    Note over IR, NLP: Resultado esperado: el equipo realiza una atención ambulatoria completa<br/>con identificación federada del paciente y registro codificado mediante servicios de terminología,<br/>emite órdenes y prescripciones estructuradas, recibe y gestiona alertas de interacción generadas por un CDSS,<br/>y obtiene una codificación automática a partir de un documento clínico en texto libre,<br/>verificable contra el contenido original.

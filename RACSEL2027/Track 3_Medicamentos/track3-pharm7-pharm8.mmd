@@ -1,0 +1,84 @@
+sequenceDiagram
+    autonumber
+    participant F as Sistema de farmacia<br/>Medication Order Consumer / Dispense Reporter
+    participant V as Servicio VHL / VHL Sharer
+    participant P as Servicio de recetas y dispensaciones<br/>Medication Order Responder / Dispense Receiver
+
+    %% Referencia de estilo: track3-pharm5.mmd
+    %% PHARM-7: https://profiles.ihe.net/PHARM/MPD/pharm-7.html
+    %% PHARM-8: https://profiles.ihe.net/PHARM/MPD/pharm-8.html
+    %% VHL: https://profiles.ihe.net/ITI/VHL/volume-1.html
+    %% Reserva, idempotencia y actualización coordinada son controles del escenario,
+    %% no operaciones definidas por PHARM-7 o PHARM-8.
+    %% P agrupa los roles y mantiene un estado compartido entre farmacias.
+
+    Note over F, P: N1T3.4. Dispensación en farmacia<br/>Objetivo: dispensar medicación a partir de una receta digital<br/>y registrar la dispensación efectuada.
+
+    Note over F, P: Paso 0: Presentación de la receta digital
+    F->>F: Recibir receta digital presentada por el paciente<br/>e identificar al paciente y la receta
+    opt La receta se presenta mediante enlace verificable VHL
+        F->>F: Recibir VHL y verificar firma, confianza del emisor<br/>y condiciones de acceso del enlace
+        break VHL inválido o acceso no autorizado
+            F->>F: Informar rechazo y detener el flujo
+        end
+        F->>V: Recuperar documentos mediante el VHL validado<br/>por un canal seguro autenticado
+        V-->>F: Documento de receta y referencia o identificador de la orden
+        F->>F: Verificar procedencia e integridad del documento<br/>y su correspondencia con el paciente
+        Note over F, V: La validación del enlace no acredita por sí sola<br/>la vigencia ni el saldo actual de la receta
+    end
+
+    rect rgb(230, 242, 255)
+        Note over F, P: Paso 1: PHARM-7 — Retrieve Medication Orders (FHIR R5)
+        F->>P: GET /MedicationRequest?identifier=system%7Cvalue<br/>Accept: application/fhir+json
+        P-->>F: Bundle de búsqueda con MedicationRequest accesibles<br/>o código de error con OperationOutcome
+        break Error, receta no encontrada o coincidencia ambigua
+            F->>F: Informar incidencia y detener la dispensación
+        end
+    end
+
+    Note over F, P: Paso 2: Validar receta y autorizar la entrega
+    F->>F: Verificar paciente, autenticidad y procedencia de la receta,<br/>prescriptor, vigencia y estado que permita dispensar
+    break Receta no válida para dispensación
+        F->>F: Registrar motivo e informar que no se puede dispensar
+    end
+    F->>P: Solicitar reserva de la cantidad a entregar<br/>con receta, versión e identificador único de operación
+    P->>P: Comprobar atómicamente estado vigente, entregas previas,<br/>saldo autorizado, repeticiones y reservas concurrentes
+    alt Entrega autorizada
+        P->>P: Reservar cantidad e impedir su uso por otra operación
+        P-->>F: Reserva confirmada y cantidad autorizada
+    else Sin saldo, receta no vigente o conflicto con otra entrega
+        P-->>F: Rechazo de autorización y motivo
+    end
+    break No se obtuvo reserva confirmada
+        F->>F: Detener la entrega y gestionar la incidencia
+    end
+
+    Note over F, P: Paso 3: Dispensación efectiva
+    F->>F: Preparar medicamento y comprobar cantidad autorizada
+    break No se realiza la entrega
+        F->>P: Cancelar reserva y registrar motivo de no entrega
+        P-->>F: Reserva liberada tras confirmar que no hubo entrega
+    end
+    F->>F: Entregar medicación y conservar registro local durable<br/>de lo efectivamente dispensado y de la operación
+    F->>F: Crear MedicationDispense con medicamento, cantidad,<br/>paciente, responsable, fecha de entrega y referencia<br/>authorizingPrescription a MedicationRequest
+
+    rect rgb(230, 242, 255)
+        Note over F, P: Paso 4: PHARM-8 — Submit Medication Dispense (FHIR R5)
+        F->>P: POST /MedicationDispense<br/>Content-Type: application/fhir+json<br/>Cuerpo: MedicationDispense con identificador único de dispensación
+        Note over F, P: Control del escenario: correlacionar la dispensación con la reserva<br/>y deduplicar reintentos por identificador de operación
+        P->>P: Validar registro y reserva, guardar dispensación<br/>y actualizar saldo y estado de receta de forma atómica
+        alt Registro creado
+            P-->>F: HTTP 201 Created<br/>MedicationDispense con id y versión asignados
+            F->>F: Guardar confirmación y referencia al registro central
+        else Error o resultado desconocido por interrupción
+            P-->>F: Código de error + OperationOutcome, si hay respuesta
+            F->>F: Mantener registro local pendiente de conciliación<br/>sin repetir la entrega física
+            Note over F, P: Conservar bloqueo de la cantidad entregada hasta conciliar<br/>Consultar resultado o reintentar la misma operación sin duplicarla<br/>No liberar automáticamente una reserva con entrega posible
+        end
+    end
+
+    Note over F, P: Paso 5: Consistencia y trazabilidad tras registro confirmado
+    Note right of P: Entrega parcial: conservar únicamente saldo y repeticiones autorizados<br/>Sin entregas pendientes autorizadas: cerrar receta según reglas aplicables<br/>Una entrega parcial no implica completar toda la receta
+    P->>P: Mantener registro consultable por usuarios autorizados<br/>con vínculo receta-dispensación, farmacia, responsable y fecha
+    F->>F: Mostrar comprobante y estado confirmado o pendiente de conciliación
+    Note over F, P: Resultado esperado: el equipo valida y dispensa una receta digital,<br/>y el registro de dispensación queda disponible y trazable,<br/>impidiendo una segunda dispensación no autorizada de la misma receta.
